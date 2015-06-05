@@ -16,10 +16,31 @@ var board = {
 		var a = "";
 		for (i in this.area) {
 			for (j in this.area[i]) {
-				a += ("<div id='" + i + j + "' class='square'></div>"); 
+				a += ("<div id='" + i + "-" + j + "' class='square'></div>"); 
 			}
 		}
 		return a;
+	}
+};
+
+var food = {
+
+	location: 0,
+	
+	create: function() {
+		var i = Math.floor(Math.random() * 40);
+		var j = Math.floor(Math.random() * 40);
+		
+		while (board.area[i][j]) {
+			i = Math.floor(Math.random() * 40);
+			j = Math.floor(Math.random() * 40);
+		}
+	$('#' + i + "-" + j).addClass('food');
+	this.location = [i, j];
+	},
+	
+	remove: function() {
+		$(".food").removeClass('food');
 	}
 };
 
@@ -49,41 +70,35 @@ var snake = {
 		}
 	},
 	
-	updateBoard: function() {
+	updateHead: function() {
 		var x = this.body[0][0];
 		var y = this.body[0][1];
-		var z = this.body.length - 1;
 		board.area[x][y] = "X";
-		$("#" + x + y).addClass("snake");
-		board.area[this.body[z][0]][this.body[z][1]] = null;
-		$("#" + this.body[z][0] + this.body[z][1]).removeClass("snake");
-		this.body.pop();
-	}
-};
-
-
-var food = {
-	
-	create: function() {
-		var i = Math.floor(Math.random() * 40);
-		var j = Math.floor(Math.random() * 40);
-		
-		while (board.area[i][j]) {
-			i = Math.floor(Math.random() * 40);
-			j = Math.floor(Math.random() * 40);
-		}
-	$('#' + i + j).addClass('food');
+		$("#" + x + "-" + y).addClass("snake");
 	},
 	
-	remove: function() {
-		$(".food").removeClass('food');
+	updateTail: function() {
+		var z = this.body.length - 1;
+		board.area[this.body[z][0]][this.body[z][1]] = null;
+		$("#" + this.body[z][0] + "-" + this.body[z][1]).removeClass("snake");
+		this.body.pop();
+	},
+	
+	eat: function() {
+		return this.body[0].join("") === food.location.join("");
+	},
+	
+	die: function() {
+		if (this.body[0][0] < 0 || this.body[0][0] > 39) return true;
+		if (this.body[0][1] < 0 || this.body[0][1] > 39) return true;
 	}
 };
+
 
 $(document).ready(function() {
 	board.createArea();
 	$("#board").append(board.render());
-	$("#2020").addClass('snake');
+	$("#20-20").addClass('snake');
 	food.create();
 	setInterval(function() { 
 		game.play(); 
@@ -91,14 +106,26 @@ $(document).ready(function() {
 });
 
 var game = {
+
+	intervalId: 0,
+
+	startTimer = function() {
+		
 	
 	play: function() {
 		document.addEventListener('keydown', function(event) {
 			snake.changeDirection(event);
-			console.log(snake.direction);
-			console.log(snake.body);
 		})
 		snake.move();
-		snake.updateBoard();
+		console.log(snake.eat());
+		if (snake.eat()) {
+			food.remove();
+			food.create();
+		}
+		else {
+			snake.updateTail();
+		}
+		snake.updateHead();
 	}
 };
+
