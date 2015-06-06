@@ -96,36 +96,39 @@ var snake = {
 
 
 $(document).ready(function() {
-	board.createArea();
-	$("#board").append(board.render());
-	$("#20-20").addClass('snake');
-	food.create();
-	setInterval(function() { 
-		game.play(); 
-	}, 1000);
+	game.init();
 });
 
 var game = {
 
 	intervalId: 0,
-
-	startTimer = function() {
-		
+	
+	init: function() {
+		board.createArea();
+		$("#board").append(board.render());
+		$("#20-20").addClass('snake');
+		food.create();
+		setInterval(this.play, 500);
+	},
 	
 	play: function() {
 		document.addEventListener('keydown', function(event) {
 			snake.changeDirection(event);
 		})
 		snake.move();
-		console.log(snake.eat());
-		if (snake.eat()) {
-			food.remove();
-			food.create();
+		if (snake.die()) {
+			clearInterval(1);
+			console.log("hello");
 		}
 		else {
-			snake.updateTail();
+			if (snake.eat()) {
+				food.remove();
+				food.create();
+			}
+			else {
+				snake.updateTail();
+			}
+			snake.updateHead();
 		}
-		snake.updateHead();
 	}
 };
-
