@@ -3,7 +3,6 @@
 	<head>
         <link rel="shortcut icon" type="image/png" href="jasmine/lib/jasmine-2.0.0/jasmine_favicon.png">
 <link rel="stylesheet" type="text/css" href="lib/jasmine-2.0.0/jasmine.css">
-
 <script type="text/javascript" src="lib/jasmine-2.0.0/jasmine.js"></script>
 <script type="text/javascript" src="lib/jasmine-2.0.0/jasmine-html.js"></script>
 <script type="text/javascript" src="lib/jasmine-2.0.0/boot.js"></script>
@@ -12,9 +11,26 @@
 		<title>Snake</title>
 	</head>
 	<body>
-	<div id="board">
-
-	</div>
+	<header>
+		<h3>Snake Game in Javascript</h3>
+		<div class="scores">
+		<div class="score">
+			<p>Games Played:</p>
+			<p id="games">0</p>
+		</div>
+		<div class="score">
+			<p>High Score:</p>
+			<p id="high-score">0</p>
+		</div>
+		<div class="score">
+			<p>Current Score:</p>
+			<p id="current-score">0</p>
+		</div>
+		</div>
+		<button type="button" id="new">New Game</button>
+	</header>
+	<div id="board"></div>
+	<p id="game-over">Level 1</p>
 	<script type="text/javascript" src="snake.js"></script>
 	</body>
 </html>

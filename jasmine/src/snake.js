@@ -2,17 +2,17 @@ var board = {
 	
 	area: [],
 	
-	createArea: function() {
-		for (i = 0; i < 40; i++) {
+	createArea() {
+		for (i = 0; i < 20; i++) {
 			this.area.push([]);
-			for (j = 0; j < 40; j++) {
+			for (j = 0; j < 20; j++) {
 				this.area[i].push(null);
 			}
 		}
-		this.area[20][20] = "X";
+		this.area[10][10] = "X";
 	},
 
-	render: function() {
+	render() {
 		var a = "";
 		for (i in this.area) {
 			for (j in this.area[i]) {
@@ -26,30 +26,32 @@ var board = {
 var food = {
 
 	location: 0,
+	count: 0,
 	
-	create: function() {
-		var i = Math.floor(Math.random() * board.area.length);
-		var j = Math.floor(Math.random() * board.area.length);
-		
-		while (board.area[i][j]) {
-			i = Math.floor(Math.random() * board.area.length);
-			j = Math.floor(Math.random() * board.area.length);
+	create() {
+		var available = [];
+		for (i in board.area) {
+			for (j in board.area[i]) {
+				if (!board.area[i][j]) {
+					available.push([i, j]);
+				}
+			}
 		}
-	$('#' + i + "-" + j).addClass('food');
-	this.location = [i, j];
-	},
-	
-	remove: function() {
+		var i = Math.floor(Math.random() * available.length - 1);
 		$(".food").removeClass('food');
+		$('#' + available[i][0] + "-" + available[i][1]).addClass('food');
+		this.location = available[i];
+		this.count += 1;
 	}
 };
 
 var snake = {
-	
-	body: [[20, 20]],
+	x: 10,
+	y: 10,
+	body: [[10, 10]],
 	direction: "r",
 	
-	changeDirection: function(event) {
+	changeDirection(event) {
 		if (this.direction === "r" || this.direction === "l") {
 			switch(event.which) {
 				case 40: return this.direction = "d";
@@ -66,79 +68,158 @@ var snake = {
 		}
 	},
 
-	move: function() {
-		var x = this.body[0][0];
-		var y = this.body[0][1];
+	move() {
 		switch(this.direction) {
-			case "r": return this.body.unshift([x, y - 1]);
-			case "l": return this.body.unshift([x, y + 1]);
-			case "u": return this.body.unshift([x - 1, y]);
-			case "d": return this.body.unshift([x + 1, y]);
+			case "r": 
+				this.y -= 1;
+				break;
+			case "l": 
+				this.y += 1;
+				break;
+			case "u": 
+				this.x -= 1;
+				break;
+			case "d": 
+				this.x += 1;
+				break;
 		}
+		this.body.unshift([this.x, this.y]);
 	},
 	
-	updateHead: function() {
-		var x = this.body[0][0];
-		var y = this.body[0][1];
-		board.area[x][y] = "X";
-		$("#" + x + "-" + y).addClass("snake");
+	updateHead() {
+		board.area[this.x][this.y] = "X";
+		$("#" + this.x + "-" + this.y).addClass("snake");
 	},
 	
-	updateTail: function() {
+	updateTail() {
 		var z = this.body.length - 1;
 		board.area[this.body[z][0]][this.body[z][1]] = null;
 		$("#" + this.body[z][0] + "-" + this.body[z][1]).removeClass("snake");
 		this.body.pop();
 	},
 	
-	eat: function() {
+	eat() {
 		return this.body[0].join("") === food.location.join("");
 	},
 	
-	die: function() {
-		var x = this.body[0][0];
-		var y = this.body[0][1];
-		if ((x < 0 || x > board.area.length - 1) ||
-		(y < 0 || y > board.area.length - 1) ||
-		(board.area[x][y] === "X")) return true;
+	die() {
+		if ((this.x < 0 || this.x > board.area.length - 1) ||
+			(this.y < 0 || this.y > board.area.length - 1) ||
+			(board.area[this.x][this.y] === "X")) return true;
 	}
 };
 
 
-$(document).ready(function() {
-	game.init();
-});
+var player = {
+	numGames: -1,
+	currentScore: 0,
+	highScore: 0,
+	foodScore: 5,
+	
+	swapScores() {
+		level.current = 1;
+		this.foodScore = 5;
+		this.numGames += 1;
+		if (this.currentScore > this.highScore) this.highScore = this.currentScore;
+		this.currentScore = 0;
+	},
+	
+	calcCurrent() {
+		this.currentScore += this.foodScore;
+		document.getElementById("current-score").innerHTML = this.currentScore;
+	},
+	
+	displayScores() {
+		document.getElementById("current-score").innerHTML = this.currentScore;
+		document.getElementById("high-score").innerHTML = this.highScore;
+		document.getElementById("games").innerHTML = this.numGames;
+		document.getElementById("game-over").innerHTML = "Game over!!";
+	}
+};
+
+var level = {
+	current: 1,
+	
+	newLevel() {
+		if (food.count % 5 === 0) {
+			this.current += 1;
+			player.foodScore += 5;
+		}
+	},
+	
+	display() {
+		document.getElementById("game-over").innerHTML = "Level " + this.current;
+	}
+};
 
 var game = {
+
+	gameOver: false,
+	intervalID: null,
 	
-	whileInterval: function(proc, int) {
-		var timerID = setInterval(function() {
-		if (proc()) clearInterval(timerID);
-		}, int);
+	endGame() {
+		console.log("hey");
+		player.swapScores();
+		player.displayScores();
 	},
 	
-	init: function() {
+	init() {
+		game.stop();
+		board.area = [];
 		board.createArea();
-		$("#board").append(board.render());
-		$("#20-20").addClass('snake');
-		food.create();
-		this.whileInterval(this.play, 200);
+		document.getElementById("board").innerHTML = board.render();
+		$("#10-10").addClass('snake');
+		snake.x = 10;
+		snake.y = 10;
+		snake.body = [[10, 10]];
+		snake.direction = "r";
+		level.current = 1;
+		level.display();
+		
 	},
 	
-	play: function() {
+	start() {
+		food.create();
+		this.intervalID = setInterval(this.play, 500);
+	},
+	
+	stop() {
+		console.log("hello");
+		clearInterval(this.intervalID);
+		this.intervalID = null;
+		this.endGame();
+		console.log("again");
+	},
+	
+	play() {
 		document.addEventListener('keydown', function(event) {
 			snake.changeDirection(event);
 		})
 		snake.move();
-		if (snake.die()) return true;
+		if (snake.die()) { 
+			game.stop();
+			return;
+		}
 		if (snake.eat()) {
-			food.remove();
 			food.create();
+			player.calcCurrent();
+			level.newLevel();
+			level.display();
 		}
 		else {
 			snake.updateTail();
 		}
 		snake.updateHead();
-		console.log("loop");
+	},
+	
+	outerLoop() {
+		$('#new').click(function() {
+			game.init();
+			game.start();
+		})
 	}
 };
+
+$(document).ready(function() {
+	game.outerLoop();
+});
