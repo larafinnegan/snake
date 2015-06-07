@@ -111,7 +111,7 @@ var snake = {
 
 
 var player = {
-	numGames: -1,
+	numGames: 0,
 	currentScore: 0,
 	highScore: 0,
 	foodScore: 5,
@@ -139,11 +139,13 @@ var player = {
 
 var level = {
 	current: 1,
+	speed: 500,
 	
 	newLevel() {
 		if (food.count % 5 === 0) {
 			this.current += 1;
 			player.foodScore += 5;
+			this.speed -= 20;
 		}
 	},
 	
@@ -158,7 +160,7 @@ var game = {
 	intervalID: null,
 	
 	endGame() {
-		console.log("hey");
+		game.stop();
 		player.swapScores();
 		player.displayScores();
 	},
@@ -174,21 +176,18 @@ var game = {
 		snake.body = [[10, 10]];
 		snake.direction = "r";
 		level.current = 1;
+		level.speed = 500;
 		level.display();
-		
+		food.create();
 	},
 	
 	start() {
-		food.create();
-		this.intervalID = setInterval(this.play, 500);
+		this.intervalID = setInterval(this.play, level.speed);
 	},
 	
 	stop() {
-		console.log("hello");
 		clearInterval(this.intervalID);
 		this.intervalID = null;
-		this.endGame();
-		console.log("again");
 	},
 	
 	play() {
@@ -197,7 +196,7 @@ var game = {
 		})
 		snake.move();
 		if (snake.die()) { 
-			game.stop();
+			game.endGame();
 			return;
 		}
 		if (snake.eat()) {
@@ -210,6 +209,8 @@ var game = {
 			snake.updateTail();
 		}
 		snake.updateHead();
+		game.stop();
+		game.start();
 	},
 	
 	outerLoop() {
