@@ -166,7 +166,7 @@ var game = {
 	},
 	
 	init() {
-		game.stop();
+		if (this.intervalID) game.endGame();
 		board.area = [];
 		board.createArea();
 		document.getElementById("board").innerHTML = board.render();
